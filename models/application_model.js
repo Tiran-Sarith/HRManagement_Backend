@@ -1,31 +1,29 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
-const vacancySchema = new Schema({
+const applicationSchema = new Schema({
     
-    jobTitle: {
+    name: {
         type: String,
         required: true,
         trim: true,
     },
-    jobDescription: {
+    email: {
         type: String,
         required: true
     },
-    jobCategory: {
+    portfolio: {
         type: String,
         required: true
     
     },
-    postedDate: {
-        type: Date,
-        default: Date.now
+    phoneNo: {
+        type: Number,
+        required: false
     },
-    
-    hireType: {
+    introduction: {
         type: String,
-        required: true,
-        //enum: ['Full-time', 'Part-time', 'Contract', 'Internship']
+        required: true
     }
 
 
@@ -36,7 +34,7 @@ const vacancySchema = new Schema({
     // what about the desgnation
 
 
-})
+});
 
-const Vacancy = mongoose.model('vacancy', vacancySchema);
-module.exports = Vacancy;
+const Application = mongoose.model('application', applicationSchema);
+module.exports = Application;
