@@ -10,6 +10,7 @@ const vacancyRouter = require('./routes/vacancies.js');
 const applicationRoute = require('./routes/applications.js')
 const departmentRoutes = require('./routes/departments');
 const projectRoutes = require('./routes/projects');
+const employeeRoute = require('./routes/employee.js');
 
 const PORT = process.env.PORT || 8070;
 
@@ -22,6 +23,9 @@ app.use('/vacancies', vacancyRouter);
 app.use('/applications', applicationRoute)
 app.use('/departments', departmentRoutes);
 app.use('/projects', projectRoutes);
+app.use('/applications', applicationRoute);
+app.use('/employee', employeeRoute);
+
 
 const URL = process.env.DB_URL;
 
