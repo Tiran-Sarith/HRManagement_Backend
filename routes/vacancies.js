@@ -4,24 +4,24 @@ const router = express.Router();
 
 //adding a job vacancy
 router.route("/Vadd").post((req, res) => {
-    const jobTitle = req.body.jobTitle;
-    const jobDescription = req.body.jobDescription;
-    const jobCategory = req.body.jobCategory;
-    const hireType = req.body.hireType;
+    const { jobTitle, jobDescription, jobCategory, hireType, jobID, deadline, designation, department, postedDate } = req.body;
 
     const newVacancy = new vacancy({
         jobTitle,
         jobDescription,
         jobCategory,
-        hireType
+        hireType,
+        jobID,
+        deadline,
+        designation,
+        department,
+        postedDate
     });
 
-    newVacancy.save().then(() => {
-        res.json("Vacancy added");
-    }).catch((err) => {
-        console.log(err);
-    })
-})
+    newVacancy.save()
+        .then(() => res.json("Vacancy added"))
+        .catch((err) => console.log(err));
+});
 
 //view all job vacancies
 router.route("/Vview").get((req, res) => {
