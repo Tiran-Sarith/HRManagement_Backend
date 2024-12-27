@@ -8,6 +8,7 @@ require('dotenv').config();
 
 const vacancyRouter = require('./routes/vacancies.js');
 const applicationRoute = require('./routes/applications.js')
+const employeeRoute = require('./routes/employee.js');
 
 const PORT = process.env.PORT || 8070;
 
@@ -15,7 +16,8 @@ const PORT = process.env.PORT || 8070;
 app.use(cors());
 app.use(bodyParser.json());
 app.use('/vacancies', vacancyRouter);
-app.use('/applications', applicationRoute)
+app.use('/applications', applicationRoute);
+app.use('/employee', employeeRoute);
 
 const URL = process.env.DB_URL;
 
