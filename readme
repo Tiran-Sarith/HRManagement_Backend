@@ -1,0 +1,124 @@
+
+//routes/vaccancies.js
+
+
+const express = require('express');
+const Vacancy = require('../models/vaccancy_model'); // Fixed the import to match the model name
+const router = express.Router();
+
+// Adding a job vacancy
+router.post("/Vadd", async (req, res) => {
+    const { jobTitle, jobDescription, jobCategory, hireType } = req.body;
+
+    const newVacancy = new Vacancy({
+        jobTitle,
+        jobDescription,
+        jobCategory,
+        hireType
+    });
+
+    try {
+        await newVacancy.save();
+        res.json("Vacancy added");
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Error adding vacancy");
+    }
+});
+
+// View all job vacancies
+router.get("/Vview", async (req, res) => {
+    try {
+        const vacancies = await Vacancy.find();
+        res.json(vacancies);
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Error fetching vacancies");
+    }
+});
+
+// View a specific job vacancy
+router.get("/Vview/:id", async (req, res) => {
+    const id = req.params.id;
+    try {
+        const vacancy = await Vacancy.findById(id);
+        if (!vacancy) return res.status(404).send("Vacancy not found");
+        res.json(vacancy);
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Error fetching vacancy");
+    }
+});
+
+// Update a job vacancy
+router.put("/Vupdate/:id", async (req, res) => {
+    const id = req.params.id;
+    const { jobTitle, jobDescription, jobCategory, hireType } = req.body;
+
+    const updateVacancy = {
+        jobTitle,
+        jobDescription,
+        jobCategory,
+        hireType
+    };
+
+    try {
+        await Vacancy.findByIdAndUpdate(id, updateVacancy, { new: true });
+        res.status(200).send({ status: "Vacancy updated" });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send({ status: "Error updating vacancy" });
+    }
+});
+
+// Delete a job vacancy
+router.delete("/Vdelete/:id", async (req, res) => {
+    const id = req.params.id;
+
+    try {
+        await Vacancy.findByIdAndDelete(id);
+        res.status(200).send({ status: "Vacancy deleted" });
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send({ status: "Error deleting vacancy" });
+    }
+});
+
+module.exports = router;
+
+
+
+
+
+
+//models/vaccancy_model.js
+const mongoose = require('mongoose');
+const Schema = mongoose.Schema;
+
+const vacancySchema = new Schema({
+    jobTitle: {
+        type: String,
+        required: true,
+        trim: true,
+    },
+    jobDescription: {
+        type: String,
+        required: true
+    },
+    jobCategory: {
+        type: String,
+        required: true
+    },
+    postedDate: {
+        type: Date,
+        default: Date.now
+    },
+    hireType: {
+        type: String,
+        required: true,
+        // enum: ['Full-time', 'Part-time', 'Contract', 'Internship'] // Uncomment if you want to enforce these options
+    }
+});
+
+const Vacancy = mongoose.model('Vacancy', vacancySchema); // Use proper naming convention
+module.exports = Vacancy;
