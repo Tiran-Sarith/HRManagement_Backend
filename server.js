@@ -20,7 +20,6 @@ app.use(bodyParser.json());
 
 //routes 
 app.use('/vacancies', vacancyRouter);
-app.use('/applications', applicationRoute)
 app.use('/departments', departmentRoutes);
 app.use('/projects', projectRoutes);
 app.use('/applications', applicationRoute);
