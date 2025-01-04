@@ -8,7 +8,7 @@ const projectSchema = new Schema({
         required: true,
         trim: true,
     },
-    departmentId: {
+    departmentID: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Department',
         required: true,

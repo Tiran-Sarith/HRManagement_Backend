@@ -6,11 +6,11 @@ const router = express.Router();
 
 // Add a project
 router.post('/Padd', async (req, res) => {
-    const { projectName, departmentId, projectDescription, projectManager, projectStatus, projectDeadline, Number_of_members, projectCategory, projectBudget, projectDuration } = req.body;
+    const { projectName, departmentID, projectDescription, projectManager, projectStatus, projectDeadline, Number_of_members, projectCategory, projectBudget, projectDuration } = req.body;
 
     const newProject = new Project({
         projectName,
-        departmentId,
+        departmentID,
         projectDescription,
         projectManager,
         projectStatus,
@@ -33,7 +33,7 @@ router.post('/Padd', async (req, res) => {
 // Get all projects
 router.get('/Pview', async (req, res) => {
     try {
-        const projects = await Project.find().populate('departmentId');
+        const projects = await Project.find().populate('departmentID');
         res.status(200).json(projects);
     } catch (err) {
         console.error(err);
@@ -46,7 +46,7 @@ router.get('/Pview/:id', async (req, res) => {
     const { id } = req.params;
 
     try {
-        const project = await Project.findById(id).populate('departmentId');
+        const project = await Project.findById(id).populate('departmentID');
         if (!project) return res.status(404).send("Project not found");
         res.status(200).json(project);
     } catch (err) {
@@ -58,12 +58,12 @@ router.get('/Pview/:id', async (req, res) => {
 // Update a project
 router.put('/Pupdate/:id', async (req, res) => {
     const { id } = req.params;
-    const { projectName, departmentId, projectDescription, projectManager, projectStatus, projectDeadline, Number_of_members, projectCategory, projectBudget, projectDuration } = req.body;
+    const { projectName, departmentID, projectDescription, projectManager, projectStatus, projectDeadline, Number_of_members, projectCategory, projectBudget, projectDuration } = req.body;
 
     try {
         await Project.findByIdAndUpdate(id, {
             projectName,
-            departmentId,
+            departmentID,
             projectDescription,
             projectManager,
             projectStatus,
