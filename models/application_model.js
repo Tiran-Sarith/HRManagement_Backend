@@ -24,6 +24,15 @@ const applicationSchema = new Schema({
     introduction: {
         type: String,
         required: true
+    },
+    vacancy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Vacancy',
+        required: true
+    },
+    filename:{
+        type: String,
+        required: true
     }
 
 
