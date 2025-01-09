@@ -29,6 +29,7 @@ router.post('/Dadd', async (req, res) => {
 router.get('/Dview', async (req, res) => {
     try {
         const departments = await Department.find();
+        console.log("department",departments)
         res.status(200).json(departments);
     } catch (err) {
         console.error(err);

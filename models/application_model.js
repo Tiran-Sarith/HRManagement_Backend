@@ -1,3 +1,4 @@
+const { type } = require('express/lib/response');
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
@@ -18,21 +19,16 @@ const applicationSchema = new Schema({
     
     },
     phoneNo: {
-        type: Number,
+        type: String,
         required: false
     },
     introduction: {
         type: String,
         required: true
+    },
+    filename: {
+        type: String,        
     }
-
-
-    //deadline ?
-    //job id
-    //department
-    // jod name -> job title
-    // what about the desgnation
-
 
 });
 

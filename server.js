@@ -40,9 +40,32 @@ mongoose.connect(URL)
 })
 .catch((err) => console.log("DB connection error",err));
 
+// //multer
+// const multer  = require('multer');
+// const req = require('express/lib/request.js');
+// const res = require('express/lib/response.js');
+
+// const storage = multer.diskStorage({
+//   destination: function (req, file, cb) {
+//     cb(null, "./files")
+//   },
+//   filename: function (req, file, cb) {
+//     const uniqueSuffix = Date.now()
+//     cb(null, uniqueSuffix+file.originalname)
+//   }
+// })
+
+// const upload = multer({ storage: storage })
 
 
+// app.post("/upload-files", upload.single("file"), async(req, res) => {
+//   console.log(req.file);
+// })
 
+app.get("/", async (req, res)=>{
+  res.send("Success!!!!")
+})
+ 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
