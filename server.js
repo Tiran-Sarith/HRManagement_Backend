@@ -29,11 +29,6 @@ app.use('/employee', employeeRoute);
 const URL = process.env.DB_URL;
 
 
-
-
-
-
-
 mongoose.connect(URL)
 .then(() => {
     console.log('Database connected successfully');
