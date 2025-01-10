@@ -94,3 +94,24 @@ router.delete('/Pdelete/:id', async (req, res) => {
 });
 
 module.exports = router;
+
+// Handle partial updates
+router.put('/Pupdate/:id', async (req, res) => {
+    const { id } = req.params;
+    
+    try {
+        const project = await Project.findById(id);
+        if (!project) {
+            return res.status(404).send("Project not found");
+        }
+
+        // Update only the provided fields
+        Object.assign(project, req.body);
+        
+        await project.save();
+        res.status(200).send("Project updated successfully");
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Error updating project");
+    }
+});

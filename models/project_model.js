@@ -28,6 +28,7 @@ const projectSchema = new Schema({
     projectStatus: {
         type: String,
         required: true,
+        default: 'Pending',
     },
     projectDeadline: {
         type: Date,
