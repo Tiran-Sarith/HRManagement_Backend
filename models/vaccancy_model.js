@@ -52,6 +52,19 @@ const vacancySchema = new Schema({
         required: true
     
     },
+    about:{
+        type: String,
+        required: true
+    
+    },
+     responsibilities: {
+        type: [String], // Array of strings
+        required: true
+    },
+    requirements: {
+        type: [String], // Array of strings
+        required: true
+    }
 
 
 })
