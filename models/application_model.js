@@ -2,7 +2,6 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const applicationSchema = new Schema({
-    
     name: {
         type: String,
         required: true,
@@ -15,7 +14,6 @@ const applicationSchema = new Schema({
     portfolio: {
         type: String,
         required: true
-    
     },
     phoneNo: {
         type: Number,
@@ -30,20 +28,11 @@ const applicationSchema = new Schema({
         ref: 'Vacancy',
         required: true
     },
-    filename:{
+    filename: {
         type: String,
         required: true
     }
-
-
-    //deadline ?
-    //job id
-    //department
-    // jod name -> job title
-    // what about the desgnation
-
-
 });
 
-const Application = mongoose.model('application', applicationSchema);
+const Application = mongoose.model('Application', applicationSchema);
 module.exports = Application;
