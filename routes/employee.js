@@ -85,6 +85,22 @@ router.get('/Eview/:employee_id', async (req, res) => {
     }
 });
 
+// Get employee count by department
+router.get('/countByDepartment/:departmentId', async (req, res) => {
+    const { departmentId } = req.params;
+    console.log(`Counting employees for department: ${departmentId}`); // Add this line to debug
+
+    try {
+        const count = await Employee.countDocuments({ employee_department: departmentId });
+        console.log(`Employee count for department ${departmentId}: ${count}`); // Add this line to debug
+        res.status(200).json({ count });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Error fetching employee count");
+    }
+});
+
+
 // // get a employee by employee_id
 // router.get('/:employee_id', async (req, res) => {
 //     try {
@@ -106,55 +122,55 @@ router.get('/Eview/:employee_id', async (req, res) => {
 
 //update a employee
 router.route("/Eupdate/:id").put(async (req, res) => {
-    const id = req.params.id;
-
-    // Destructuring all attributes from the request body
-    const {
-        employee_full_name,
-        employee_name_with_initials,
-        employee_first_name,
-        employee_last_name,
-        employee_id,                 // Included employee_id
-        employee_email,
-        employee_nic,
-        employee_telephone,
-        employee_address,
-        employee_designation,
-        employee_current_project_id,
-        employee_department
-    } = req.body;
-
-    // Creating the update object with all attributes
-    const updateEmployee = {
-        employee_full_name,
-        employee_name_with_initials,
-        employee_first_name,
-        employee_last_name,
-        employee_id,                 // Adding employee_id
-        employee_email,
-        employee_nic,
-        employee_telephone,
-        employee_address,
-        employee_designation,
-        employee_current_project_id,
-        employee_department
-    };
-
     try {
-        // Ensure updated document is returned with { new: true }
-        const updatedEmployee = await Employee.findByIdAndUpdate(id, updateEmployee, { new: true });
+        const id = req.params.id;
+        if (!id) {
+            return res.status(400).send({ status: "Error", message: "No ID provided" });
+        }
+
+        // Validate if ID is a valid MongoDB ObjectId
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).send({ 
+                status: "Error", 
+                message: "Invalid ID format" 
+            });
+        }
+
+        const updateEmployee = {
+            employee_full_name: req.body.employee_full_name,
+            employee_name_with_initials: req.body.employee_name_with_initials,
+            employee_first_name: req.body.employee_first_name,
+            employee_last_name: req.body.employee_last_name,
+            employee_id: req.body.employee_id,
+            employee_email: req.body.employee_email,
+            employee_nic: req.body.employee_nic,
+            employee_telephone: req.body.employee_telephone,
+            employee_address: req.body.employee_address,
+            employee_designation: req.body.employee_designation,
+            employee_current_project_id: req.body.employee_current_project_id,
+            employee_department: req.body.employee_department
+        };
+
+        const updatedEmployee = await Employee.findByIdAndUpdate(
+            id,
+            updateEmployee,
+            { new: true, runValidators: true }
+        );
 
         if (!updatedEmployee) {
-            return res.status(404).send({ status: "Employee not found" });
+            return res.status(404).send({ status: "Error", message: "Employee not found" });
         }
 
         res.status(200).send({ 
             status: "Employee updated", 
-            employee: updatedEmployee  // Send the updated employee back as confirmation
+            employee: updatedEmployee
         });
     } catch (err) {
-        console.error(err);
-        res.status(500).send({ status: "Error with updating data", error: err.message });
+        console.error('Update error:', err);
+        res.status(500).send({ 
+            status: "Error with updating data", 
+            error: err.message 
+        });
     }
 });
 

@@ -55,6 +55,20 @@ router.get('/Pview/:id', async (req, res) => {
     }
 });
 
+// Get project count by department
+router.get('/countByDepartment/:departmentId', async (req, res) => {
+    const { departmentId } = req.params;
+
+    try {
+        const count = await Project.countDocuments({ departmentID: departmentId });
+        res.status(200).json({ count });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Error fetching project count");
+    }
+});
+
+
 // Update a project
 router.put('/Pupdate/:id', async (req, res) => {
     const { id } = req.params;
