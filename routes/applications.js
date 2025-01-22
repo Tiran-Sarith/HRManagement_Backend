@@ -36,9 +36,10 @@ router.post("/upload-files", upload.single("file"), async(req, res) => {
     const phoneNo = req.body.hireType;
     const introduction= req.body.introduction;
     const filename = req.file.filename;
+    const jobTitle = req.file.jobTitle;
 
     try{
-        await Application.create({ name: name, email:email, portfolio: portfolio, phoneNo: phoneNo, introduction:introduction, filename: filename  });
+        await Application.create({ name: name, email:email, portfolio: portfolio, phoneNo: phoneNo, introduction:introduction, filename: filename, jobTitle: jobTitle  });
         res.send({status: "ok"});
     }catch(error){
         res.json({status:error})
@@ -56,6 +57,7 @@ router.route("/Aadd").post(upload.single("file"), async(req, res) => {
     const phoneNo = req.body.phoneNo;
     const introduction= req.body.introduction;
     const filename = req.file.filename;
+    const jobTitle = req.body.jobTitle;
 
     const newApplication = new application({
         name,
@@ -63,7 +65,8 @@ router.route("/Aadd").post(upload.single("file"), async(req, res) => {
         portfolio,
         phoneNo,
         introduction,
-        filename
+        filename,
+        jobTitle
     });
 
     newApplication.save().then(() => {

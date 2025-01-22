@@ -26,6 +26,11 @@ const applicationSchema = new Schema({
         type: String,
         required: true
     },
+    jobTitle: {
+        type: String,
+        required: true,
+        trim: true,
+    },
     filename: {
         type: String,        
     }
