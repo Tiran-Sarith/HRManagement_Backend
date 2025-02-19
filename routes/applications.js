@@ -96,6 +96,7 @@ router.route("/Aadd").post(upload.single("file"), async(req, res) => {
     const jobTitle = req.body.jobTitle;
     const pdfPath = req.file.path;
 
+
     const newApplication = new application({
         name,
         email,
@@ -124,6 +125,7 @@ router.route("/Aadd").post(upload.single("file"), async(req, res) => {
             console.log({text});
             console.log("Text extracted");
 
+            const { jobRequirements } = req.body;
             //////// Chat GPT integration process //////////
             // Constructing a dynamic prompt based on the job description
                 const prompt = `
@@ -136,7 +138,7 @@ router.route("/Aadd").post(upload.single("file"), async(req, res) => {
                     5. **Overall Compatibility Score** – A numerical score between 0 (minimum) and 1000 (maximum).
             
                     **Job Description:** 
-                    DevOps internship position at a tech startup. Must have experience with AWS, Docker, Kubernetes, ansile and Terraform.
+                    ${jobRequirements}
             
                     **Candidate's CV:** 
                     ${text}
@@ -177,8 +179,6 @@ router.route("/Aadd").post(upload.single("file"), async(req, res) => {
         res.status(500).json({ error: error.message });
     }
 
-
-
 })
 
 //view all applications
@@ -189,6 +189,7 @@ router.route("/Aview").get((req, res) => {
         console.log(err);
     })
 })
+
 
 //view a specific application
 router.route("/Aview/:id").get((req, res) => {
