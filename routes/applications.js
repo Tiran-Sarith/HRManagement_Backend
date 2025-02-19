@@ -95,6 +95,7 @@ router.route("/Aadd").post(upload.single("file"), async(req, res) => {
     const filename = req.file.filename;
     const jobTitle = req.body.jobTitle;
     const pdfPath = req.file.path;
+    const vacancyId = req.body.vacancyId;
 
 
     const newApplication = new application({
@@ -104,7 +105,8 @@ router.route("/Aadd").post(upload.single("file"), async(req, res) => {
         phoneNo,
         introduction,
         filename,
-        jobTitle
+        jobTitle,
+        vacancyId
     });
 
     newApplication.save().then(() => {
