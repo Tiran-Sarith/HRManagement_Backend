@@ -133,20 +133,26 @@ router.route("/Aadd").post(upload.single("file"), async(req, res) => {
                     2. **Experience Relevance** – Evaluate if the candidate has relevant work experience.
                     3. **Education & Certifications** – Ensure required qualifications are met.
                     4. **Projects & Achievements** – Look for key projects, awards, or leadership roles.
-                    5. **Overall Compatibility Score** – Provide a score from 0-100 with an explanation.
+                    5. **Overall Compatibility Score** – A numerical score between 0 (minimum) and 1000 (maximum).
             
                     **Job Description:** 
-                    DevOps Engineer
+                    DevOps internship position at a tech startup. Must have experience with AWS, Docker, Kubernetes, ansile and Terraform.
             
                     **Candidate's CV:** 
                     ${text}
             
-                    Provide a **final compatibility score**.
-                `;
-            
+                    **Response Format:**  
+                    ONLY return a JSON object as follows:
+                    {
+                        "score": <numerical_score>
+                    }                
+                    
+                    `;
+
+
                 try {
                     const response = await axios.post('https://api.openai.com/v1/chat/completions', {
-                        model: "gpt-4o-mini",
+                        model: "gpt-4",
                         messages: [{ role: "user", content: prompt }]
                     }, {
                         headers: { 'Authorization': `Bearer ${process.env.OPENAI_API_KEY}` }
@@ -161,7 +167,7 @@ router.route("/Aadd").post(upload.single("file"), async(req, res) => {
                     console.error(error);
                     res.status(500).json({ error: "Error processing CV evaluation" });
                 }
-
+                
                 ///////////// End of Chat GPT integration process ////////////
 
         } else {
