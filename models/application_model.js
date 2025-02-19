@@ -37,7 +37,11 @@ const applicationSchema = new Schema({
     },
     filename: {
         type: String,        
-    }
+    },
+    cvScore: {
+        type: Number,
+        default: null
+    },
 
 });
 
