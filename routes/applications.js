@@ -96,6 +96,8 @@ router.route("/Aadd").post(upload.single("file"), async(req, res) => {
     const jobTitle = req.body.jobTitle;
     const pdfPath = req.file.path;
     const vacancyId = req.body.vacancyId;
+    
+    
 
 
     const newApplication = new application({
@@ -106,7 +108,8 @@ router.route("/Aadd").post(upload.single("file"), async(req, res) => {
         introduction,
         filename,
         jobTitle,
-        vacancyId
+        vacancyId,
+        cvScore: null
     });
 
     newApplication.save().then(() => {
@@ -162,9 +165,11 @@ router.route("/Aadd").post(upload.single("file"), async(req, res) => {
                         headers: { 'Authorization': `Bearer ${process.env.OPENAI_API_KEY}` }
                     });
             
-                    // Extract the response and log the final compatibility score
-                    const evaluationResult = response.data.choices[0].message.content;
-                    console.log("CV Evaluation Result:", evaluationResult);
+        // Extract the compatibility score
+        const evaluationResult = JSON.parse(response.data.choices[0].message.content);
+        const cvScore = evaluationResult.score;
+        console.log("CV Evaluation Score:", cvScore);
+
 
                     res.json({ evaluation: evaluationResult });
         } catch (error) {
@@ -202,5 +207,23 @@ router.route("/Aview/:id").get((req, res) => {
         console.log(err);
     })
 })
+
+//application get by vacancy
+router.route("/Aview/byVacancy/:vacancyId").get(async (req, res) => {
+    try {
+        const vacancyId = req.params.vacancyId;
+        const applications = await application.find({ vacancyId: vacancyId });
+
+        if (!applications || applications.length === 0) {
+            return res.status(404).json({ message: "No applications found for this vacancy ID" });
+        }
+
+        res.json(applications);
+    } catch (err) {
+        console.error("Error fetching applications:", err);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+});
+
 
 module.exports = router;
