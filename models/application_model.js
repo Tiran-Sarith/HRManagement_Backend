@@ -9,6 +9,10 @@ const applicationSchema = new Schema({
         required: true,
         trim: true,
     },
+    vacancyId:{
+        type: String,
+        required: true
+    },
     email: {
         type: String,
         required: true
