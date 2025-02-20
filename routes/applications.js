@@ -112,12 +112,17 @@ router.route("/Aadd").post(upload.single("file"), async(req, res) => {
         cvScore: null
     });
 
-    newApplication.save().then(() => {
-        // res.json("Application added");
-        console.log("Application added");
-    }).catch((err) => {
-        console.log(err);
-    })
+    // newApplication.save().then(() => {
+    //     // res.json("Application added");
+    //     console.log("Application added");
+    // }).catch((err) => {
+    //     console.log(err);
+    // })
+
+    // Save the application to get an _id
+    const savedApplication = await newApplication.save();
+    console.log("Application added with ID:", savedApplication._id);
+
 
 
 // ✅ Correctly define the GET route
@@ -169,6 +174,14 @@ router.route("/Aadd").post(upload.single("file"), async(req, res) => {
         const evaluationResult = JSON.parse(response.data.choices[0].message.content);
         const cvScore = evaluationResult.score;
         console.log("CV Evaluation Score:", cvScore);
+
+
+        // Update the application record with the cvScore
+        await application.findByIdAndUpdate(
+            savedApplication._id,
+            { cvScore: cvScore }
+        );
+        console.log("Application updated with CV score");
 
 
                     res.json({ evaluation: evaluationResult });
