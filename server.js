@@ -12,7 +12,7 @@ const departmentRoutes = require('./routes/departments');
 const projectRoutes = require('./routes/projects');
 const employeeRoute = require('./routes/employee.js');
 const fileRoute = require('./routes/pdftext.js');
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 8070;
 
 //app middleware
 app.use(cors());
