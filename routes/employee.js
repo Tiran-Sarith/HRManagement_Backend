@@ -1,5 +1,6 @@
 const express = require('express');
 let Employee = require('../models/employee_model');
+const mongoose = require('mongoose');
 
 const router = express.Router();
 
@@ -53,9 +54,6 @@ router.route('/Eadd').post((req, res) => {
             res.status(500).json({ error: 'Failed to add employee', details: err.message });
         });
 });
-
-
-
 
 
 //view all employees
@@ -185,6 +183,119 @@ router.route("/Edelete/:id").delete(async (req, res) => {
         console.log(err.message);
         res.status(500).send({ status: "Error with deleting data" })
     })
+});
+
+// Clear project assignments for all employees assigned to a specific project
+router.route("/clearProjectAssignments/:projectId").post(async (req, res) => {
+    try {
+        const projectId = req.params.projectId;
+        
+        if (!projectId) {
+            return res.status(400).json({ 
+                status: "Error", 
+                message: "No project ID provided" 
+            });
+        }
+
+        // Find all employees assigned to this project
+        const result = await Employee.updateMany(
+            { employee_current_project_id: projectId },
+            { $set: { employee_current_project_id: "" } }
+        );
+
+        res.status(200).json({ 
+            status: "Success", 
+            message: "Project assignments cleared",
+            modifiedCount: result.modifiedCount
+        });
+    } catch (err) {
+        console.error('Error clearing project assignments:', err);
+        res.status(500).json({ 
+            status: "Error", 
+            message: "Failed to clear project assignments", 
+            error: err.message 
+        });
+    }
+});
+
+// Update employee's project ID (new route for just updating project assignment)
+router.route("/updateProject/:id").put(async (req, res) => {
+    try {
+        const id = req.params.id;
+        const { employee_current_project_id } = req.body;
+        
+        if (!id) {
+            return res.status(400).send({ status: "Error", message: "No ID provided" });
+        }
+
+        // Validate if ID is a valid MongoDB ObjectId
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).send({ 
+                status: "Error", 
+                message: "Invalid ID format" 
+            });
+        }
+
+        const updatedEmployee = await Employee.findByIdAndUpdate(
+            id,
+            { employee_current_project_id },
+            { new: true }
+        );
+
+        if (!updatedEmployee) {
+            return res.status(404).send({ status: "Error", message: "Employee not found" });
+        }
+
+        res.status(200).send({ 
+            status: "Employee project updated", 
+            employee: updatedEmployee
+        });
+    } catch (err) {
+        console.error('Update error:', err);
+        res.status(500).send({ 
+            status: "Error with updating project assignment", 
+            error: err.message 
+        });
+    }
+});
+
+// Update employee with partial data (to handle just specific field updates)
+router.route("/EupdatePartial/:id").put(async (req, res) => {
+    try {
+        const id = req.params.id;
+        if (!id) {
+            return res.status(400).send({ status: "Error", message: "No ID provided" });
+        }
+
+        // Validate if ID is a valid MongoDB ObjectId
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).send({ 
+                status: "Error", 
+                message: "Invalid ID format" 
+            });
+        }
+
+        const updatedEmployee = await Employee.findByIdAndUpdate(
+            id,
+            req.body,
+            { new: true, runValidators: true }
+        );
+
+        if (!updatedEmployee) {
+            return res.status(404).send({ status: "Error", message: "Employee not found" });
+        }
+
+        res.status(200).send({ 
+            status: "Employee updated", 
+            employee: updatedEmployee
+        });
+    } catch (err) {
+        console.error('Update error:', err);
+        res.status(500).send({ 
+            status: "Error with updating data", 
+            error: err.message 
+        });
+    }
 });
 
 module.exports = router;
