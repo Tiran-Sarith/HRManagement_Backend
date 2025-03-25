@@ -19,11 +19,11 @@ app.use(cors());
 app.use(bodyParser.json());
 
 //routes 
-app.use('/vacancies', vacancyRouter);
-app.use('/departments', departmentRoutes);
-app.use('/projects', projectRoutes);
-app.use('/applications', applicationRoute);
-app.use('/employee', employeeRoute);
+app.use('/api/vacancies', vacancyRouter);
+app.use('/api/departments', departmentRoutes);
+app.use('/api/projects', projectRoutes);
+app.use('/api/applications', applicationRoute);
+app.use('/api/employee', employeeRoute);
 app.use(fileRoute);
 
 
