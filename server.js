@@ -12,6 +12,8 @@ const departmentRoutes = require('./routes/departments');
 const projectRoutes = require('./routes/projects');
 const employeeRoute = require('./routes/employee.js');
 const fileRoute = require('./routes/pdftext.js');
+const signupRoute = require('./routes/signup.js');
+const loginRoute = require('./routes/login.js');
 const PORT = process.env.PORT || 8070;
 
 //app middleware
@@ -24,6 +26,8 @@ app.use('/api/departments', departmentRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/applications', applicationRoute);
 app.use('/api/employee', employeeRoute);
+app.use('/api/user', signupRoute);
+app.use('/api/auth', loginRoute);
 app.use(fileRoute);
 
 
