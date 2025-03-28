@@ -11,7 +11,6 @@ const applicationRoute = require('./routes/applications.js')
 const departmentRoutes = require('./routes/departments');
 const projectRoutes = require('./routes/projects');
 const employeeRoute = require('./routes/employee.js');
-const userRouter = require('./routes/Users.js');
 const fileRoute = require('./routes/pdftext.js');
 
 const signupRoute = require('./routes/signup.js');
