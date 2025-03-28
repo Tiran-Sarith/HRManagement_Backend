@@ -10,6 +10,15 @@ const UserSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  employeeId:{
+    type: String,
+    required: true
+  },
+  role: {
+      type: String,
+      enum: ['admin', 'member'],
+      default: 'member'
+  },
     email: {
     type: String,
     required: true
@@ -18,11 +27,6 @@ const UserSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    role: {
-        type: String,
-        enum: ['admin', 'member'],
-        default: 'member'
-    }
 });
 
 module.exports = mongoose.model('User', UserSchema);
