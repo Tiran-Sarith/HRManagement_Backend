@@ -15,6 +15,7 @@ dotenv.config();
 const multer = require('multer');
 const { default: mongoose } = require('mongoose');
 
+// File upload config
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, "./files")
@@ -27,6 +28,8 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
+
+// Upload CV only
 router.post("/upload-files", upload.single("file"), async (req, res) => {
   const { name, email, portfolio, introduction } = req.body;
   const phoneNo = req.body.hireType;
@@ -41,6 +44,7 @@ router.post("/upload-files", upload.single("file"), async (req, res) => {
   }
 });
 
+// Extract PDF text
 async function extractTextFromPDF(pdfPath) {
   try {
     const absolutePath = path.resolve(pdfPath);
@@ -54,8 +58,8 @@ async function extractTextFromPDF(pdfPath) {
   }
 }
 
-// Add Application with CV Evaluation and Questions
-router.route("/Aadd").post(upload.single("file"), async (req, res) => {
+// Add application with CV evaluation and questions
+router.post("/Aadd", upload.single("file"), async (req, res) => {
   const { name, email, portfolio, phoneNo, introduction, jobTitle, vacancyId, jobRequirements } = req.body;
   const filename = req.file.filename;
   const pdfPath = req.file.path;
@@ -70,7 +74,8 @@ router.route("/Aadd").post(upload.single("file"), async (req, res) => {
     jobTitle,
     vacancyId,
     cvScore: null,
-    questionAnswers: [],
+    questions: [],
+    answers: []
   });
 
   const savedApplication = await newApplication.save();
@@ -124,7 +129,8 @@ Return only a JSON object in the following format:
 
       await application.findByIdAndUpdate(savedApplication._id, {
         cvScore,
-        questionAnswers: questions.map(q => ({ question: q, answer: "" }))
+        questions,
+        answers: Array(questions.length).fill("")
       });
 
       console.log("Application updated with CV score and generated questions");
@@ -138,18 +144,34 @@ Return only a JSON object in the following format:
   }
 });
 
-// View all applications
-router.route("/Aview").get((req, res) => {
-  application.find().then(applications => res.json(applications)).catch(err => console.log(err));
+
+// GET all applications
+router.get("/Aview", async (req, res) => {
+  try {
+    const applications = await application.find();
+    res.json(applications);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
 });
 
-// View application by ID
-router.route("/Aview/:id").get((req, res) => {
-  application.findById(req.params.id).then(application => res.json(application)).catch(err => console.log(err));
+// GET application by ID
+router.get("/Aview/:id", async (req, res) => {
+  try {
+    const appData = await application.findById(req.params.id);
+    if (!appData) {
+      return res.status(404).json({ message: "Application not found" });
+    }
+    res.json(appData);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
 });
 
-// View applications by Vacancy ID
-router.route("/Aview/byVacancy/:vacancyId").get(async (req, res) => {
+// GET applications by Vacancy ID
+router.get("/Aview/byVacancy/:vacancyId", async (req, res) => {
   try {
     const applications = await application.find({ vacancyId: req.params.vacancyId });
     if (!applications || applications.length === 0) {
@@ -162,20 +184,38 @@ router.route("/Aview/byVacancy/:vacancyId").get(async (req, res) => {
   }
 });
 
-// Endpoint to receive and update answers
-router.route("/Aanswer/:id").post(async (req, res) => {
-  const { answers } = req.body; // expecting [{question, answer}, ...]
+// GET specific questions for an application
+router.get("/Aquestions/:id", async (req, res) => {
+  try {
+    const appData = await application.findById(req.params.id);
+    if (!appData) {
+      return res.status(404).json({ message: "Application not found" });
+    }
+    res.json({ questions: appData.questions });
+  } catch (err) {
+    console.error("Error fetching questions:", err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+// POST answers for an application
+router.post("/AsubmitAnswers/:id", async (req, res) => {
+  const { answers } = req.body; // expecting array of strings
 
   try {
-    const updatedApp = await application.findByIdAndUpdate(req.params.id, {
-      questionAnswers: answers
-    }, { new: true });
-
-    if (!updatedApp) {
+    const appData = await application.findById(req.params.id);
+    if (!appData) {
       return res.status(404).json({ message: "Application not found" });
     }
 
-    res.json({ message: "Answers submitted successfully", updatedApp });
+    if (!Array.isArray(answers) || answers.length !== appData.questions.length) {
+      return res.status(400).json({ message: "Number of answers must match the number of questions." });
+    }
+
+    appData.answers = answers;
+    await appData.save();
+
+    res.json({ message: "Answers submitted successfully", updated: true });
   } catch (err) {
     console.error("Error submitting answers:", err);
     res.status(500).json({ error: "Failed to submit answers" });
