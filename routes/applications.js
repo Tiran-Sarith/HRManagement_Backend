@@ -5,6 +5,12 @@ const app = express();
 app.use(express.json());
 router.use("/files", express.static("files"));
 
+const upload = require("../s3Uploader"); // updated multer
+const stream = require("stream");
+const { PutObjectCommand } = require("@aws-sdk/client-s3");
+const s3 = require("../s3config");
+
+
 const fs = require('fs');
 const path = require('path');
 const pdfParse = require('pdf-parse');
@@ -26,22 +32,28 @@ const storage = multer.diskStorage({
   }
 });
 
-const upload = multer({ storage: storage });
+//const upload = multer({ storage: storage });
+require('../models/application_model');
+// const upload = multer({ storage: storage })
 
 
-// Upload CV only
-router.post("/upload-files", upload.single("file"), async (req, res) => {
-  const { name, email, portfolio, introduction } = req.body;
-  const phoneNo = req.body.hireType;
-  const filename = req.file.filename;
-  const jobTitle = req.file.jobTitle;
 
-  try {
-    await application.create({ name, email, portfolio, phoneNo, introduction, filename, jobTitle });
-    res.send({ status: "ok" });
-  } catch (error) {
-    res.json({ status: error });
-  }
+router.post("/upload-files", upload.single("file"), async(req, res) => {
+  console.log(req.file);
+  const name = req.body.name;
+    const email = req.body.email;
+    const portfolio = req.body.portfolio;
+    const phoneNo = req.body.hireType;
+    const introduction= req.body.introduction;
+    const filename = req.file.filename;
+    const jobTitle = req.file.jobTitle;
+
+    try{
+        await Application.create({ name: name, email:email, portfolio: portfolio, phoneNo: phoneNo, introduction:introduction, filename: filename, jobTitle: jobTitle  });
+        res.send({status: "ok"});
+    }catch(error){
+        res.json({status:error})
+    }
 });
 
 // Extract PDF text
@@ -63,6 +75,10 @@ router.post("/Aadd", upload.single("file"), async (req, res) => {
   const { name, email, portfolio, phoneNo, introduction, jobTitle, vacancyId, jobRequirements } = req.body;
   const filename = req.file.filename;
   const pdfPath = req.file.path;
+  
+  const fileKey = req.file.key; // S3 key
+  const bucketName = process.env.S3_BUCKET_NAME;
+
 
   const newApplication = new application({
     name,
@@ -70,7 +86,7 @@ router.post("/Aadd", upload.single("file"), async (req, res) => {
     portfolio,
     phoneNo,
     introduction,
-    filename,
+    filename: fileKey,
     jobTitle,
     vacancyId,
     cvScore: null,
@@ -80,9 +96,28 @@ router.post("/Aadd", upload.single("file"), async (req, res) => {
 
   const savedApplication = await newApplication.save();
   console.log("Application added with ID:", savedApplication._id);
+   console.log("Application filename:", savedApplication.filename);
+
+          // Step 1: Download PDF from S3
+    const { GetObjectCommand } = require("@aws-sdk/client-s3");
+
+    const command = new GetObjectCommand({
+    Bucket: bucketName,
+    Key: fileKey
+    });
+
+    const response2 = await s3.send(command);
+    const pdfStream = response2.Body;
+  
+  
+        // Step 2: Convert stream to buffer
+        const buffer = await streamToBuffer(pdfStream);
+
+   // Step 3: Extract text from PDF
+        const data = await pdfParse(buffer);
 
   try {
-    const text = await extractTextFromPDF(pdfPath);
+    const extractedText = data.text;
 
     if (text) {
       const prompt = `
@@ -99,7 +134,7 @@ You have two tasks:
 ${jobRequirements}
 
 **Candidate's CV:**  
-${text}
+${extractedText}
 
 **Response Format:**  
 Return only a JSON object in the following format:
@@ -116,7 +151,9 @@ Return only a JSON object in the following format:
         },
         {
           headers: {
-            'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
+            'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+             "Content-Type": "application/json"
+
           }
         });
 
@@ -143,6 +180,15 @@ Return only a JSON object in the following format:
     res.status(500).json({ error: "Error processing CV evaluation" });
   }
 });
+
+function streamToBuffer(readStream) {
+    return new Promise((resolve, reject) => {
+        const chunks = [];
+        readStream.on("data", chunk => chunks.push(chunk));
+        readStream.on("end", () => resolve(Buffer.concat(chunks)));
+        readStream.on("error", reject);
+    });
+}
 
 
 // GET all applications
@@ -184,6 +230,7 @@ router.get("/Aview/byVacancy/:vacancyId", async (req, res) => {
   }
 });
 
+
 // GET specific questions for an application
 router.get("/Aquestions/:id", async (req, res) => {
   try {
@@ -211,8 +258,7 @@ router.post("/AsubmitAnswers/:id", async (req, res) => {
     if (!Array.isArray(answers) || answers.length !== appData.questions.length) {
       return res.status(400).json({ message: "Number of answers must match the number of questions." });
     }
-
-    appData.answers = answers;
+        appData.answers = answers;
     await appData.save();
 
     res.json({ message: "Answers submitted successfully", updated: true });
@@ -221,6 +267,7 @@ router.post("/AsubmitAnswers/:id", async (req, res) => {
     res.status(500).json({ error: "Failed to submit answers" });
   }
 });
+
 
 
 // GET only the answers of a specific application
@@ -282,6 +329,28 @@ router.route("/Adelete/:id").delete(async (req, res) => {
     });
   }
 });
+
+const { GetObjectCommand } = require("@aws-sdk/client-s3");
+const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
+
+router.get("/get-s3-cv-url/:filename", async (req, res) => {
+    try {
+        const { filename } = req.params;
+
+        const command = new GetObjectCommand({
+            Bucket: process.env.S3_BUCKET_NAME,
+            Key: filename,
+        });
+
+        const signedUrl = await getSignedUrl(s3, command, { expiresIn: 3600 }); // 1 hour
+
+        res.json({ url: signedUrl });
+    } catch (err) {
+        console.error("Error generating signed URL:", err);
+        res.status(500).json({ error: "Failed to generate signed URL" });
+    }
+});
+
 
 
 module.exports = router;
