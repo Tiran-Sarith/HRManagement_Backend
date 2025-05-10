@@ -119,7 +119,7 @@ router.post("/Aadd", upload.single("file"), async (req, res) => {
   try {
     const extractedText = data.text;
 
-    if (text) {
+    if (extractedText) {
       const prompt = `
 You are an HR assistant that evaluates candidate CVs based on job descriptions.
 You have two tasks:
