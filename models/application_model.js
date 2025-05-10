@@ -3,13 +3,12 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const applicationSchema = new Schema({
-    
     name: {
         type: String,
         required: true,
         trim: true,
     },
-    vacancyId:{
+    vacancyId: {
         type: String,
         required: true
     },
@@ -20,7 +19,6 @@ const applicationSchema = new Schema({
     portfolio: {
         type: String,
         required: true
-    
     },
     phoneNo: {
         type: String,
@@ -36,13 +34,16 @@ const applicationSchema = new Schema({
         trim: true,
     },
     filename: {
-        type: String,        
+        type: String,
     },
     cvScore: {
         type: Number,
         default: null
     },
-
+    questions: {
+        type: [String], // New field to store an array of generated interview questions
+        default: []
+    }
 });
 
 const Application = mongoose.model('application', applicationSchema);
