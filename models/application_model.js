@@ -43,7 +43,13 @@ const applicationSchema = new Schema({
     questions: {
         type: [String], // New field to store an array of generated interview questions
         default: []
+    },
+
+    answers: {
+        type: [String], //employee answers
+        default: []
     }
+    
 });
 
 const Application = mongoose.model('application', applicationSchema);
