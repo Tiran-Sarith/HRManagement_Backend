@@ -182,4 +182,49 @@ router.route("/Aanswer/:id").post(async (req, res) => {
   }
 });
 
+
+// Delete a specific application
+router.route("/Adelete/:id").delete(async (req, res) => {
+  try {
+    const id = req.params.id;
+    
+    // First check if the application exists
+    const applicationToDelete = await application.findById(id);
+    
+    if (!applicationToDelete) {
+      return res.status(404).json({ message: "Application not found" });
+    }
+    
+    // If there's a file associated with the application, delete it
+    if (applicationToDelete.filename) {
+      const filePath = path.join(__dirname, '../files', applicationToDelete.filename);
+      
+      // Check if file exists before attempting to delete
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath); // Delete the file
+        console.log(`Deleted file: ${applicationToDelete.filename}`);
+      }
+    }
+    
+    // Now delete the application record
+    const deletedApplication = await application.findByIdAndDelete(id);
+    
+    if (!deletedApplication) {
+      return res.status(404).json({ message: "Application not found" });
+    }
+    
+    res.status(200).json({ 
+      message: "Application successfully deleted",
+      deletedApplication
+    });
+    
+  } catch (err) {
+    console.error("Error deleting application:", err);
+    res.status(500).json({ 
+      message: "Error deleting application", 
+      error: err.message 
+    });
+  }
+});
+
 module.exports = router;
