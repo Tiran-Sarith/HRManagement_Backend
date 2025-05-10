@@ -222,4 +222,22 @@ router.post("/AsubmitAnswers/:id", async (req, res) => {
   }
 });
 
+// GET only the answers of a specific application
+router.route("/Aanswers/:id").get(async (req, res) => {
+  try {
+    const app = await application.findById(req.params.id);
+    if (!app) {
+      return res.status(404).json({ message: "Application not found" });
+    }
+    res.json({ answers: app.answers });
+  } catch (err) {
+    console.error("Error fetching answers:", err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+
+
+
+
 module.exports = router;
