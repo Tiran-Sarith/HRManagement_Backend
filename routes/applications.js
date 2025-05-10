@@ -4,6 +4,12 @@ const router = express.Router();
 const app = express();
 app.use(express.json());
 router.use("/files", express.static("files"));
+/////////////////
+const upload = require("../s3Uploader"); // updated multer
+const stream = require("stream");
+const { PutObjectCommand } = require("@aws-sdk/client-s3");
+const s3 = require("../s3config");
+
 
 
 const fs = require('fs');
@@ -44,7 +50,10 @@ const storage = multer.diskStorage({
 })
 
 require('../models/application_model');
-const upload = multer({ storage: storage })
+// const upload = multer({ storage: storage })
+
+
+
 
 
 router.post("/upload-files", upload.single("file"), async(req, res) => {
@@ -85,121 +94,113 @@ async function extractTextFromPDF(pdfPath) {
 }
 
 
-//adding a application and extrecting text from pdf
-router.route("/Aadd").post(upload.single("file"), async(req, res) => {
-    const name = req.body.name;
-    const email = req.body.email;
-    const portfolio = req.body.portfolio;
-    const phoneNo = req.body.phoneNo;
-    const introduction= req.body.introduction;
-    const filename = req.file.filename;
-    const jobTitle = req.body.jobTitle;
-    const pdfPath = req.file.path;
-    const vacancyId = req.body.vacancyId;
-    
-    
+router.route("/Aadd").post(upload.single("file"), async (req, res) => {
+    try {
+        const {
+            name,
+            email,
+            portfolio,
+            phoneNo,
+            introduction,
+            jobTitle,
+            jobRequirements,
+            vacancyId
+        } = req.body;
+
+        const fileKey = req.file.key; // S3 key
+        const bucketName = process.env.S3_BUCKET_NAME;
+
+        const newApplication = new application({
+            name,
+            email,
+            portfolio,
+            phoneNo,
+            introduction,
+            filename: fileKey,
+            jobTitle,
+            vacancyId,
+            cvScore: null
+        });
+
+        const savedApplication = await newApplication.save();
+        console.log("Application added with ID:", savedApplication._id);
+                console.log("Application filename:", savedApplication.filename);
 
 
-    const newApplication = new application({
-        name,
-        email,
-        portfolio,
-        phoneNo,
-        introduction,
-        filename,
-        jobTitle,
-        vacancyId,
-        cvScore: null
+        // Step 1: Download PDF from S3
+    const { GetObjectCommand } = require("@aws-sdk/client-s3");
+
+    const command = new GetObjectCommand({
+    Bucket: bucketName,
+    Key: fileKey
     });
 
-    // newApplication.save().then(() => {
-    //     // res.json("Application added");
-    //     console.log("Application added");
-    // }).catch((err) => {
-    //     console.log(err);
-    // })
-
-    // Save the application to get an _id
-    const savedApplication = await newApplication.save();
-    console.log("Application added with ID:", savedApplication._id);
+    const response2 = await s3.send(command);
+    const pdfStream = response2.Body;
 
 
+        // Step 2: Convert stream to buffer
+        const buffer = await streamToBuffer(pdfStream);
 
-// ✅ Correctly define the GET route
-    try {
-        // const pdfPath = './files/Tiran.pdf'; // Replace with your actual PDF path
-        const text = await extractTextFromPDF(pdfPath);
+        // Step 3: Extract text from PDF
+        const data = await pdfParse(buffer);
+        const extractedText = data.text;
 
-        if (text) {
-            // res.json({ extractedText: text });
-            console.log({text});
-            console.log("Text extracted");
+        // Step 4: Prepare OpenAI prompt
+        const prompt = `
+You are an HR assistant that evaluates candidate CVs based on job descriptions.
+Consider the following criteria:
+1. **Skills Matching**
+2. **Experience Relevance**
+3. **Education & Certifications**
+4. **Projects & Achievements**
+5. **Overall Compatibility Score** – from 0 to 1000
 
-            const { jobRequirements } = req.body;
-            //////// Chat GPT integration process //////////
-            // Constructing a dynamic prompt based on the job description
-                const prompt = `
-                    You are an HR assistant that evaluates candidate CVs based on job descriptions.
-                    Consider the following criteria:
-                    1. **Skills Matching** – Check if the CV mentions required skills.
-                    2. **Experience Relevance** – Evaluate if the candidate has relevant work experience.
-                    3. **Education & Certifications** – Ensure required qualifications are met.
-                    4. **Projects & Achievements** – Look for key projects, awards, or leadership roles.
-                    5. **Overall Compatibility Score** – A numerical score between 0 (minimum) and 1000 (maximum).
-            
-                    **Job Description:** 
-                    ${jobRequirements}
-            
-                    **Candidate's CV:** 
-                    ${text}
-            
-                    **Response Format:**  
-                    ONLY return a JSON object as follows:
-                    {
-                        "score": <numerical_score>
-                    }                
-                    
-                    `;
+**Job Description:** 
+${jobRequirements}
 
+**Candidate's CV:** 
+${extractedText}
 
-                try {
-                    const response = await axios.post('https://api.openai.com/v1/chat/completions', {
-                        model: "gpt-4",
-                        messages: [{ role: "user", content: prompt }]
-                    }, {
-                        headers: { 'Authorization': `Bearer ${process.env.OPENAI_API_KEY}` }
-                    });
-            
-        // Extract the compatibility score
+ONLY return a JSON object:
+{
+  "score": <numerical_score>
+}
+        `;
+
+        const response = await axios.post("https://api.openai.com/v1/chat/completions", {
+            model: "gpt-4",
+            messages: [{ role: "user", content: prompt }]
+        }, {
+            headers: {
+                Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+                "Content-Type": "application/json"
+            }
+        });
+
         const evaluationResult = JSON.parse(response.data.choices[0].message.content);
         const cvScore = evaluationResult.score;
-        console.log("CV Evaluation Score:", cvScore);
 
+        await application.findByIdAndUpdate(savedApplication._id, { cvScore });
+        console.log("CV evaluated and updated.");
+        console.log("CV score is ", cvScore)
 
-        // Update the application record with the cvScore
-        await application.findByIdAndUpdate(
-            savedApplication._id,
-            { cvScore: cvScore }
-        );
-        console.log("Application updated with CV score");
+        res.json({ evaluation: evaluationResult });
 
-
-                    res.json({ evaluation: evaluationResult });
-        } catch (error) {
-                    console.error(error);
-                    res.status(500).json({ error: "Error processing CV evaluation" });
-                }
-                
-                ///////////// End of Chat GPT integration process ////////////
-
-        } else {
-            res.status(500).json({ error: "Failed to extract text." });
-        }
-    } catch (error) {
-        res.status(500).json({ error: error.message });
+    } catch (err) {
+        console.error("Error in /Aadd:", err);
+        res.status(500).json({ error: err.message });
     }
+});
 
-})
+function streamToBuffer(readStream) {
+    return new Promise((resolve, reject) => {
+        const chunks = [];
+        readStream.on("data", chunk => chunks.push(chunk));
+        readStream.on("end", () => resolve(Buffer.concat(chunks)));
+        readStream.on("error", reject);
+    });
+}
 
 //view all applications
 router.route("/Aview").get((req, res) => {
@@ -237,6 +238,28 @@ router.route("/Aview/byVacancy/:vacancyId").get(async (req, res) => {
         res.status(500).json({ error: "Internal Server Error" });
     }
 });
+
+const { GetObjectCommand } = require("@aws-sdk/client-s3");
+const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
+
+router.get("/get-s3-cv-url/:filename", async (req, res) => {
+    try {
+        const { filename } = req.params;
+
+        const command = new GetObjectCommand({
+            Bucket: process.env.S3_BUCKET_NAME,
+            Key: filename,
+        });
+
+        const signedUrl = await getSignedUrl(s3, command, { expiresIn: 3600 }); // 1 hour
+
+        res.json({ url: signedUrl });
+    } catch (err) {
+        console.error("Error generating signed URL:", err);
+        res.status(500).json({ error: "Failed to generate signed URL" });
+    }
+});
+
 
 
 module.exports = router;
