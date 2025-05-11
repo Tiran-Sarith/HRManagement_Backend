@@ -49,7 +49,7 @@ router.route("/Vview/:id").get((req, res) => {
 //update a job vacancy
 router.route("/Vupdate/:id").put(async (req, res) => {
     const id = req.params.id;
-    const { jobTitle, jobCategory, hireType,requirements, responsibilities,designation,deadline,about,department,,benefits,whatweoffer } = req.body;
+    const { jobTitle, jobCategory, hireType,requirements, responsibilities,designation,deadline,about,department,benefits,whatweoffer } = req.body;
 
     const updateVacancy = {
         jobTitle,
