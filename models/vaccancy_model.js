@@ -8,10 +8,7 @@ const vacancySchema = new Schema({
         required: true,
         trim: true,
     },
-    jobDescription: {
-        type: String,
-        required: true
-    },
+   
     jobCategory: {
         type: String,
         required: true
