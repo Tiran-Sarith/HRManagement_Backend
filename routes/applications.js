@@ -147,7 +147,7 @@ Return only a JSON object in the following format:
 });
 
 
-// GET all application
+// GET all application  
 router.get("/Aview", async (req, res) => {
   try {
     const applications = await application.find();
