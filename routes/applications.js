@@ -94,6 +94,8 @@ router.post("/Aadd", upload.single("file"), async (req, res) => {
     answers: []
   });
 
+  // Save the application to the database
+
   const savedApplication = await newApplication.save();
   console.log("Application added with ID:", savedApplication._id);
    console.log("Application filename:", savedApplication.filename);
