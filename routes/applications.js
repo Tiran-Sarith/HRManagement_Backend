@@ -173,7 +173,7 @@ Return only a JSON object in the following format:
       });
 
       console.log("Application updated with CV score and generated questions");
-      res.json({ evaluation: evaluationResult });
+      res.json({ evaluation: evaluationResult, _id: savedApplication._id });
     } else {
       res.status(500).json({ error: "Failed to extract text." });
     }
@@ -193,7 +193,7 @@ function streamToBuffer(readStream) {
 }
 
 
-// GET all applications
+// GET all application  
 router.get("/Aview", async (req, res) => {
   try {
     const applications = await application.find();
