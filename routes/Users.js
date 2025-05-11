@@ -1,5 +1,5 @@
 const express = require('express');
-const User = require('../models/Users_model');
+const User = require('../models/User_model');
 const router = express.Router();
 
 // Add a user
@@ -85,5 +85,23 @@ router.delete('/delete/:id', async (req, res) => {
     }  
 }
 );
+
+// Get password for a specific user
+router.get('/password/:id', async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const user = await User.findById(id);
+        if (!user) return res.status(404).send("User not found");
+        
+        // Return the password directly
+        // Note: In a real production environment, you should NEVER do this
+        // This is highly insecure and just for development/demonstration purposes
+        res.status(200).json({ password: user.password });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Error fetching user password");
+    }
+});
 
 module.exports = router;
