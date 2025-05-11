@@ -4,7 +4,7 @@ const router = express.Router();
 
 //adding a job vacancy
 router.route("/Vadd").post((req, res) => {
-    const { jobTitle, jobCategory, hireType, jobID, deadline, designation, department, postedDate, about, requirements, responsibilities } = req.body;
+    const { jobTitle, jobCategory, hireType, jobID, deadline, designation, department, postedDate, about, requirements, responsibilities,benefits,whatweoffer } = req.body;
 
     const newVacancy = new vacancy({
         jobTitle,
@@ -18,6 +18,8 @@ router.route("/Vadd").post((req, res) => {
         about, 
         requirements, 
         responsibilities,
+        benefits,
+        whatweoffer
     });
 
     newVacancy.save()
@@ -47,7 +49,7 @@ router.route("/Vview/:id").get((req, res) => {
 //update a job vacancy
 router.route("/Vupdate/:id").put(async (req, res) => {
     const id = req.params.id;
-    const { jobTitle, jobCategory, hireType,requirements, responsibilities,designation,deadline,about,department, } = req.body;
+    const { jobTitle, jobCategory, hireType,requirements, responsibilities,designation,deadline,about,department,,benefits,whatweoffer } = req.body;
 
     const updateVacancy = {
         jobTitle,
@@ -59,6 +61,8 @@ router.route("/Vupdate/:id").put(async (req, res) => {
         responsibilities,
         about,
         department,
+        benefits,
+        whatweoffer
     }
 
     const update = await vacancy.findByIdAndUpdate(id, updateVacancy).then(() => {
