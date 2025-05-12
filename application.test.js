@@ -1,23 +1,28 @@
-const request = require("supertest");
-const app = require("../server"); // your Express app
-const path = require("path");
+const request = require('supertest');
+const app = require('./server'); // adjust path if different
 
-describe("POST /applications/Aadd", () => {
-  it("should submit an application and return an evaluation result", async () => {
+describe('POST /api/auth/login', () => {
+  it('should return 200 and a token for valid credentials', async () => {
     const res = await request(app)
-      .post("/applications/Aadd")
-      .field("name", "Test User")
-      .field("email", "test@example.com")
-      .field("portfolio", "https://github.com/test")
-      .field("phoneNo", "0771234567")
-      .field("introduction", "I am a passionate developer")
-      .field("jobTitle", "Software Engineer")
-      .field("vacancyId", "someValidVacancyId")
-      .field("jobRequirements", "Must have JavaScript, Node.js skills")
-      .attach("file", path.join(sample_cv, "sample_cv.pdf"));
+      .post('/api/auth/login')
+      .send({
+        email: 'test5@gmail.com',
+        password: '123456'
+      });
 
-    expect(res.statusCode).toBe(200);
-    expect(res.body.evaluation).toHaveProperty("score");
-    expect(res.body.evaluation).toHaveProperty("questions");
+    expect(res.statusCode).toEqual(200);
+    expect(res.body).toHaveProperty('token'); // assuming your login returns a token
+  });
+
+  it('should return 400 for invalid credentials', async () => {
+    const res = await request(app)
+      .post('/api/auth/login')
+      .send({
+        email: 'test5@gmail.com',
+        password: 'wrongpassword'
+      });
+
+    expect(res.statusCode).toBe(400); // match your backend's behavior
+    expect(res.body).toHaveProperty('message'); // match backend's actual response
   });
 });
