@@ -72,6 +72,8 @@ async function extractTextFromPDF(pdfPath) {
 
 // Add application with CV evaluation and questions
 router.post("/Aadd", upload.single("file"), async (req, res) => {
+
+  try {
   const { name, email, portfolio, phoneNo, introduction, jobTitle, vacancyId, jobRequirements } = req.body;
   const filename = req.file.filename;
   const pdfPath = req.file.path;
@@ -118,7 +120,7 @@ router.post("/Aadd", upload.single("file"), async (req, res) => {
    // Step 3: Extract text from PDF
         const data = await pdfParse(buffer);
 
-  try {
+  
     const extractedText = data.text;
 
     if (extractedText) {
