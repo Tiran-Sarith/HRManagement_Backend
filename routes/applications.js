@@ -132,6 +132,7 @@ You have two tasks:
    - Experience Relevance
    - Education & Certifications
    - Projects & Achievements
+   Give more weight to the skills that are mentioned in the job description
 2. Generate 5 relevant technical or behavioral interview questions based on the CV and job description.
 
 **Job Description:**  
