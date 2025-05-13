@@ -18,12 +18,16 @@ router.route('/Eadd').post((req, res) => {
         employee_address,
         employee_designation,
         employee_current_project_id,
-        employee_department
+        employee_department,
+        employee_age,
+        employeeepf,
+        employee_hireddate,
+        employee_company_email
     } = req.body;
 
     // Create a new Employee instance
     const newEmployee = new Employee({
-        employee_full_name,
+         employee_full_name,
         employee_name_with_initials,
         employee_first_name,
         employee_last_name,
@@ -34,7 +38,11 @@ router.route('/Eadd').post((req, res) => {
         employee_address,
         employee_designation,
         employee_current_project_id,
-        employee_department
+        employee_department,
+        employee_age,
+        employeeepf,
+        employee_hireddate,
+        employee_company_email
     });
 
     // Save the new employee to the database
@@ -146,7 +154,12 @@ router.route("/Eupdate/:id").put(async (req, res) => {
             employee_address: req.body.employee_address,
             employee_designation: req.body.employee_designation,
             employee_current_project_id: req.body.employee_current_project_id,
-            employee_department: req.body.employee_department
+            employee_department: req.body.employee_department,
+            employee_age: req.body.employee_age,
+            employeeepf: req.body.employeeepf,
+            employee_hireddate: req.body.employee_hireddate,
+            employee_company_email: req.body.employee_company_email
+        
         };
 
         const updatedEmployee = await Employee.findByIdAndUpdate(

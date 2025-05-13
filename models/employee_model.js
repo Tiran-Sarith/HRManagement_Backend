@@ -67,6 +67,22 @@ const   employeeSchema = new Schema({
 
     employee_department:{
         type: String
+    },
+    employee_age:{
+        type: Number,
+        required: true
+    },
+    employeeepf:{
+        type: String,
+        required: true
+    },
+    employee_hireddate:{
+        type: Date,
+        required: true
+    },
+    employee_company_email:{
+        type: String,
+        required: true
     }
 
     
