@@ -4,11 +4,11 @@ const router = express.Router();
 const app = express();
 app.use(express.json());
 router.use("/files", express.static("files"));
-
-const upload = require("../s3Uploader"); // updated multer
+const multer = require('multer');
+//const upload = require("../s3Uploader"); // updated multer
 const stream = require("stream");
-const { PutObjectCommand } = require("@aws-sdk/client-s3");
-const s3 = require("../s3config");
+//const { PutObjectCommand } = require("@aws-sdk/client-s3");
+//const s3 = require("../s3config");
 
 
 const fs = require('fs');
@@ -17,8 +17,6 @@ const pdfParse = require('pdf-parse');
 const axios = require('axios');
 const dotenv = require('dotenv');
 dotenv.config();
-
-const multer = require('multer');
 const { default: mongoose } = require('mongoose');
 
 // File upload config
@@ -31,11 +29,10 @@ const storage = multer.diskStorage({
     cb(null, uniqueSuffix + file.originalname)
   }
 });
-
+const upload = multer({ storage: storage });
 //const upload = multer({ storage: storage });
 require('../models/application_model');
 // const upload = multer({ storage: storage })
-
 
 
 router.post("/upload-files", upload.single("file"), async(req, res) => {
@@ -78,8 +75,8 @@ router.post("/Aadd", upload.single("file"), async (req, res) => {
   const filename = req.file.filename;
   const pdfPath = req.file.path;
   
-  const fileKey = req.file.key; // S3 key
-  const bucketName = process.env.S3_BUCKET_NAME;
+  // const fileKey = req.file.key; // S3 key
+  // const bucketName = process.env.S3_BUCKET_NAME;
 
 
   const newApplication = new application({
@@ -88,7 +85,8 @@ router.post("/Aadd", upload.single("file"), async (req, res) => {
     portfolio,
     phoneNo,
     introduction,
-    filename: fileKey,
+    //filename: filekey,
+    filename: filename,
     jobTitle,
     vacancyId,
     cvScore: null,
@@ -102,20 +100,29 @@ router.post("/Aadd", upload.single("file"), async (req, res) => {
   console.log("Application added with ID:", savedApplication._id);
    console.log("Application filename:", savedApplication.filename);
 
-          // Step 1: Download PDF from S3
-    const { GetObjectCommand } = require("@aws-sdk/client-s3");
+    //       // Step 1: Download PDF from S3
+    // const { GetObjectCommand } = require("@aws-sdk/client-s3");
 
-    const command = new GetObjectCommand({
-    Bucket: bucketName,
-    Key: fileKey
-    });
+    // const command = new GetObjectCommand({
+    // Bucket: bucketName,
+    // Key: fileKey
+    // });
 
-    const response2 = await s3.send(command);
-    const pdfStream = response2.Body;
+    // const response2 = await s3.send(command);
+    // const pdfStream = response2.Body;
   
   
-        // Step 2: Convert stream to buffer
-        const buffer = await streamToBuffer(pdfStream);
+    //     // Step 2: Convert stream to buffer
+    //     const buffer = await streamToBuffer(pdfStream);
+
+        // ---------------------------
+    // Step 1: Read local PDF file
+    // ---------------------------
+    const fs = require("fs");
+//    const buffer = fs.readFileSync(filePath);
+    const filePath = req.file.path;
+    const buffer = fs.readFileSync(filePath);
+
 
    // Step 3: Extract text from PDF
         const data = await pdfParse(buffer);
@@ -335,8 +342,8 @@ router.route("/Adelete/:id").delete(async (req, res) => {
   }
 });
 
-const { GetObjectCommand } = require("@aws-sdk/client-s3");
-const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
+//const { GetObjectCommand } = require("@aws-sdk/client-s3");
+//const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
 
 router.get("/get-s3-cv-url/:filename", async (req, res) => {
     try {
