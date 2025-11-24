@@ -345,24 +345,41 @@ router.route("/Adelete/:id").delete(async (req, res) => {
 //const { GetObjectCommand } = require("@aws-sdk/client-s3");
 //const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
 
-router.get("/get-s3-cv-url/:filename", async (req, res) => {
-    try {
-        const { filename } = req.params;
+// router.get("/get-s3-cv-url/:filename", async (req, res) => {
+//     try {
+//         const { filename } = req.params;
 
-        const command = new GetObjectCommand({
-            Bucket: process.env.S3_BUCKET_NAME,
-            Key: filename,
-        });
+//         const command = new GetObjectCommand({
+//             Bucket: process.env.S3_BUCKET_NAME,
+//             Key: filename,
+//         });
 
-        const signedUrl = await getSignedUrl(s3, command, { expiresIn: 3600 }); // 1 hour
+//         const signedUrl = await getSignedUrl(s3, command, { expiresIn: 3600 }); // 1 hour
 
-        res.json({ url: signedUrl });
-    } catch (err) {
-        console.error("Error generating signed URL:", err);
-        res.status(500).json({ error: "Failed to generate signed URL" });
+//         res.json({ url: signedUrl });
+//     } catch (err) {
+//         console.error("Error generating signed URL:", err);
+//         res.status(500).json({ error: "Failed to generate signed URL" });
+//     }
+// });
+
+// Download CV stored locally
+router.get("/download-cv/:filename", (req, res) => {
+  const filename = req.params.filename;
+
+  const filePath = path.join(__dirname, "../files", filename);
+
+  if (!fs.existsSync(filePath)) {
+    return res.status(404).json({ message: "File not found" });
+  }
+
+  res.download(filePath, filename, (err) => {
+    if (err) {
+      console.error("Error downloading file:", err);
+      res.status(500).json({ message: "Could not download file" });
     }
+  });
 });
-
 
 
 module.exports = router;
